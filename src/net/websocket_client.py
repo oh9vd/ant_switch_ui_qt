@@ -19,11 +19,23 @@ class WebSocketClient:
     def __init__(self, config: WebSocketConfig) -> None:
         self._config = config
         self._on_message: Optional[Callable[[str], None]] = None
+        self._on_error: Optional[Callable[[str], None]] = None
+        self._on_disconnect: Optional[Callable[[], None]] = None
+        self._on_send_failed: Optional[Callable[[str], None]] = None
         self._logger = get_logger(self.__class__.__name__)
         self._socket: QWebSocket | None = None
 
     def set_message_handler(self, handler: Callable[[str], None]) -> None:
         self._on_message = handler
+
+    def set_error_handler(self, handler: Callable[[str], None]) -> None:
+        self._on_error = handler
+
+    def set_disconnect_handler(self, handler: Callable[[], None]) -> None:
+        self._on_disconnect = handler
+
+    def set_send_failed_handler(self, handler: Callable[[str], None]) -> None:
+        self._on_send_failed = handler
 
     def connect(self) -> None:
         if not self._config.enabled:
@@ -33,6 +45,7 @@ class WebSocketClient:
             self._connect_signal("textMessageReceived", self._handle_text_message)
             self._connect_signal("connected", self._handle_connected)
             self._connect_signal("disconnected", self._handle_disconnected)
+            self._connect_signal("errorOccurred", self._handle_error)
         self._logger.info("Opening WebSocket: %s", self._config.url)
         self._socket.open(QUrl(self._config.url))
 
@@ -44,6 +57,8 @@ class WebSocketClient:
             self._socket.sendTextMessage(message)
         else:
             self._logger.warning("WebSocket not connected; message not sent")
+            if self._on_send_failed:
+                self._on_send_failed("not connected")
 
     def close(self) -> None:
         if self._socket is not None:
@@ -59,6 +74,14 @@ class WebSocketClient:
 
     def _handle_disconnected(self) -> None:
         self._logger.info("WebSocket disconnected")
+        if self._on_disconnect:
+            self._on_disconnect()
+
+    def _handle_error(self, error) -> None:
+        message = str(error)
+        self._logger.error("WebSocket error: %s", message)
+        if self._on_error:
+            self._on_error(message)
 
     def _connect_signal(self, name: str, handler) -> None:
         if self._socket is None:

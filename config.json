@@ -1,6 +1,6 @@
 {
   "app": {
-    "theme": "light",
+    "theme": "dark",
     "ui": "qml"
   },
   "wsConnection": {
@@ -57,7 +57,7 @@
     ]
   },
   "logging": {
-    "level": "INFO",
+    "level": "DEBUG",
     "console": true,
     "file": "logs/app.log"
   }

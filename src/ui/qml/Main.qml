@@ -7,6 +7,12 @@ ApplicationWindow {
     height: 85
     visible: true
     title: appTitle
+    function formatKHz(value) {
+        if (!value || value <= 0) {
+            return "";
+        }
+        return (value).toLocaleString(Qt.locale(), 'f', 0) + " kHz";
+    }
     component ToggleButton: Button {
         checkable: true
         width: 37
@@ -120,7 +126,7 @@ ApplicationWindow {
 
             Label {
                 id: lblRigAFreq
-                text: radioStatus.aFreq
+                text: formatKHz(radioStatus.aFreq)
                 horizontalAlignment: Text.AlignLeft
             }
         }
@@ -228,7 +234,7 @@ ApplicationWindow {
 
             Label {
                 id: lblRigBFreq
-                text: radioStatus.bFreq
+                text: formatKHz(radioStatus.bFreq)
                 horizontalAlignment: Text.AlignLeft
                 width: 40
             }

@@ -56,8 +56,8 @@ def parse_radio_info(xml_payload: str) -> RadioInfo:
     return RadioInfo(
         station_name=text("StationName"),
         radio_nr=int(text("RadioNr", "0")),
-        freq=int(text("Freq", "0")),
-        tx_freq=int(text("TXFreq", "0")),
+        freq=int(text("Freq", "0"))/100,
+        tx_freq=int(text("TXFreq", "0"))/100,
         mode=text("Mode"),
         op_call=text("OpCall"),
         is_running=_to_bool(text("IsRunning", "false")),

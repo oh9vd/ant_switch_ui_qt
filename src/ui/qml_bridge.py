@@ -23,6 +23,9 @@ class QmlBridge(QObject):
         self._ws_status = WsStatus()
         self._radio_status = RadioStatus()
         self._controller.set_ws_message_listener(self._handle_ws_message)
+        self._controller.set_ws_error_listener(self._handle_ws_error)
+        self._controller.set_ws_disconnect_listener(self._handle_ws_disconnected)
+        self._controller.set_ws_send_failed_listener(self._handle_ws_send_failed)
         self._controller.set_udp_info_listener(self._handle_udp_info)
 
     @Slot(str)
@@ -64,6 +67,17 @@ class QmlBridge(QObject):
         if isinstance(data, dict):
             self._ws_status.update_from_dict(data)
             self._set_busy(False)
+
+    def _handle_ws_error(self, error: str) -> None:
+        self._logger.warning("WebSocket error: %s", error)
+        self._set_busy(False)
+
+    def _handle_ws_disconnected(self) -> None:
+        self._set_busy(False)
+
+    def _handle_ws_send_failed(self, reason: str) -> None:
+        self._logger.warning("WebSocket send failed: %s", reason)
+        self._set_busy(False)
 
     @Property(QObject, constant=True)
     def wsStatus(self) -> WsStatus:

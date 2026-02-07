@@ -20,12 +20,18 @@ class AppController:
     def __post_init__(self) -> None:
         self._logger = get_logger(self.__class__.__name__)
         self._ws_message_listener: Optional[Callable[[str], None]] = None
+        self._ws_error_listener: Optional[Callable[[str], None]] = None
+        self._ws_disconnect_listener: Optional[Callable[[], None]] = None
+        self._ws_send_failed_listener: Optional[Callable[[str], None]] = None
         self._udp_info_listener: Optional[Callable[[RadioInfo], None]] = None
         ws_url = _build_ws_url(self.settings.ws_url, self.settings.ws_port)
         self.ws_client = WebSocketClient(
             WebSocketConfig(url=ws_url)
         )
         self.ws_client.set_message_handler(self._handle_ws_message)
+        self.ws_client.set_error_handler(self._handle_ws_error)
+        self.ws_client.set_disconnect_handler(self._handle_ws_disconnected)
+        self.ws_client.set_send_failed_handler(self._handle_ws_send_failed)
         self.udp_client = UdpClient(
             UdpConfig(host=self.settings.udp_host, port=self.settings.udp_port)
         )
@@ -55,14 +61,36 @@ class AppController:
     def set_ws_message_listener(self, listener: Callable[[str], None]) -> None:
         self._ws_message_listener = listener
 
+    def set_ws_error_listener(self, listener: Callable[[str], None]) -> None:
+        self._ws_error_listener = listener
+
+    def set_ws_disconnect_listener(self, listener: Callable[[], None]) -> None:
+        self._ws_disconnect_listener = listener
+
+    def set_ws_send_failed_listener(self, listener: Callable[[str], None]) -> None:
+        self._ws_send_failed_listener = listener
+
     def set_udp_info_listener(self, listener: Callable[[RadioInfo], None]) -> None:
         self._udp_info_listener = listener
 
     def _handle_ws_message(self, message: str) -> None:
         self.state.last_message = message
-        self._logger.info("WebSocket message received: %s", message)
+        self._logger.debug("WebSocket message received: %s", message)
         if self._ws_message_listener:
             self._ws_message_listener(message)
+
+    def _handle_ws_error(self, error: str) -> None:
+        self._logger.warning("WebSocket error: %s", error)
+        if self._ws_error_listener:
+            self._ws_error_listener(error)
+
+    def _handle_ws_disconnected(self) -> None:
+        if self._ws_disconnect_listener:
+            self._ws_disconnect_listener()
+
+    def _handle_ws_send_failed(self, reason: str) -> None:
+        if self._ws_send_failed_listener:
+            self._ws_send_failed_listener(reason)
 
     def _handle_udp_message(self, payload: bytes) -> None:
         try:
