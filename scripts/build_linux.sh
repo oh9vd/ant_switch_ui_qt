@@ -3,6 +3,11 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
+CFG_BACKUP="$PROJECT_ROOT/config.backup.json"
+
+if [[ -f "dist/remote_switch/config.json" ]]; then
+  cp -f "dist/remote_switch/config.json" "$CFG_BACKUP"
+fi
 
 if [[ ! -d ".venv" ]]; then
   python3 -m venv .venv
@@ -12,4 +17,10 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-pyinstaller --clean --onefile --noconfirm remote_switch.spec
+pyinstaller --clean --noconfirm remote_switch.spec
+
+if [[ -f "$CFG_BACKUP" ]]; then
+  mkdir -p "dist/remote_switch"
+  cp -f "$CFG_BACKUP" "dist/remote_switch/config.json"
+  rm -f "$CFG_BACKUP"
+fi
