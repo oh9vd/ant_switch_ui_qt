@@ -30,7 +30,7 @@ ApplicationWindow {
             CheckBox {
                 id: cbAutoA
                 text: qsTr("Auto")
-                enabled: !rbA0.checked && !bridge.busy && radioStatus.aFreq > 0
+                enabled: radioStatus.aFreq > 0 && !bridge.busy  
                 checked: bridge.autoA
                 onClicked: bridge.autoA = checked
             }
@@ -141,7 +141,7 @@ ApplicationWindow {
             CheckBox {
                 id: cbAutoB
                 text: qsTr("Auto")
-                enabled: !rbB0.checked && !bridge.busy && radioStatus.bFreq > 0
+                enabled: radioStatus.bFreq > 0 && !bridge.busy 
                 checked: bridge.autoB
                 onClicked: bridge.autoB = checked
             }
