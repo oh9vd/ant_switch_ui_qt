@@ -74,7 +74,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
-    upx=True,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     target_arch=None,
@@ -87,7 +87,7 @@ coll = COLLECT(
     app.binaries,
     app.datas,
     strip=True,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name="remote_switch",
 )
