@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 from typing import Callable, Optional
 from urllib.parse import urlparse, urlunparse
 
@@ -25,8 +24,6 @@ class AppController:
         self._ws_disconnect_listener: Optional[Callable[[], None]] = None
         self._ws_send_failed_listener: Optional[Callable[[str], None]] = None
         self._udp_info_listener: Optional[Callable[[RadioInfo], None]] = None
-        self._ws_a: str = ""
-        self._ws_b: str = ""
         ws_url = _build_ws_url(self.settings.ws_url, self.settings.ws_port)
         self.ws_client = WebSocketClient(
             WebSocketConfig(url=ws_url)
@@ -61,16 +58,6 @@ class AppController:
         except Exception as exc:
             self._logger.exception("WebSocket send failed: %s", exc)
 
-    def select_antenna(self, rig: str, value: int) -> bool:
-        rig = rig.upper()
-        target = "-" if value == 0 else str(value)
-        current = self._ws_a if rig == "A" else self._ws_b
-        if current == target:
-            return False
-        command = f"{rig}{'-' if value == 0 else value}"
-        self.send_text(command)
-        return True
-
     def set_ws_message_listener(self, listener: Callable[[str], None]) -> None:
         self._ws_message_listener = listener
 
@@ -89,7 +76,6 @@ class AppController:
     def _handle_ws_message(self, message: str) -> None:
         self.state.last_message = message
         self._logger.debug("WebSocket message received: %s", message)
-        self._update_ws_state(message)
         if self._ws_message_listener:
             self._ws_message_listener(message)
 
@@ -115,18 +101,6 @@ class AppController:
                 self._udp_info_listener(self.state.radio_info)
         except Exception as exc:
             self._logger.exception("Failed to parse UDP XML: %s", exc)
-
-    def _update_ws_state(self, message: str) -> None:
-        try:
-            data = json.loads(message)
-        except json.JSONDecodeError:
-            return
-        if not isinstance(data, dict):
-            return
-        if "a" in data:
-            self._ws_a = str(data.get("a"))
-        if "b" in data:
-            self._ws_b = str(data.get("b"))
 
 
 def _build_ws_url(raw_url: str, port: int) -> str:

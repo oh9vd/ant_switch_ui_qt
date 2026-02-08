@@ -13,6 +13,7 @@ from ui.ws_status import WsStatus
 
 class QmlBridge(QObject):
     statusChanged = Signal()
+    statusMessageChanged = Signal()
     busyChanged = Signal()
     autoAChanged = Signal()
     autoBChanged = Signal()
@@ -21,6 +22,7 @@ class QmlBridge(QObject):
         super().__init__()
         self._controller = controller
         self._status = "Disconnected"
+        self._status_message = "Disconnected"
         self._busy = False
         self._auto_a = False
         self._auto_b = False
@@ -39,14 +41,11 @@ class QmlBridge(QObject):
         message = text.strip()
         if not message:
             return
-        self._set_busy(True)
         self._controller.send_text(message)
 
     @Slot(str, int)
     def selectAntenna(self, rig: str, value: int) -> None:
-        sent = self._controller.select_antenna(rig, value)
-        if sent:
-            self._set_busy(True)
+        self._select_antenna_internal(rig, value)
 
     def _get_status(self) -> str:
         return self._status
@@ -58,6 +57,17 @@ class QmlBridge(QObject):
         self.statusChanged.emit()
 
     status = Property(str, _get_status, _set_status, notify=statusChanged)
+
+    def _get_status_message(self) -> str:
+        return self._status_message
+
+    def _set_status_message(self, value: str) -> None:
+        if self._status_message == value:
+            return
+        self._status_message = value
+        self.statusMessageChanged.emit()
+
+    statusMessage = Property(str, _get_status_message, _set_status_message, notify=statusMessageChanged)
 
     def _get_busy(self) -> bool:
         return self._busy
@@ -101,17 +111,21 @@ class QmlBridge(QObject):
         if isinstance(data, dict):
             self._ws_status.update_from_dict(data)
             self._set_busy(False)
+            self._set_status_message("OK")
 
     def _handle_ws_error(self, error: str) -> None:
         self._logger.warning("WebSocket error: %s", error)
         self._set_busy(False)
+        self._set_status_message(error)
 
     def _handle_ws_disconnected(self) -> None:
         self._set_busy(False)
+        self._set_status_message("Disconnected")
 
     def _handle_ws_send_failed(self, reason: str) -> None:
         self._logger.warning("WebSocket send failed: %s", reason)
         self._set_busy(False)
+        self._set_status_message(f"Send failed: {reason}")
 
     @Property(QObject, constant=True)
     def wsStatus(self) -> WsStatus:
@@ -134,11 +148,7 @@ class QmlBridge(QObject):
         if info.radio == Rig.B and not self._auto_b:
             return
 
-        freq_khz = info.freq
-        if freq_khz > 200_000:
-            freq_khz = int(freq_khz / 1000)
-
-        rule = self._select_rule(info.radio, freq_khz)
+        rule = self._select_rule(info.radio,info.freq)
         if rule is None:
             return
 
@@ -154,9 +164,7 @@ class QmlBridge(QObject):
         if current == str(selected):
             return
 
-        sent = self._controller.select_antenna(info.radio.value, selected)
-        if sent:
-            self._set_busy(True)
+        self._select_antenna_internal(info.radio.value, selected)
 
     def _select_rule(self, rig: Rig, freq_khz: int) -> dict | None:
         for rule in self._auto_rules:
@@ -164,9 +172,20 @@ class QmlBridge(QObject):
                 continue
             min_freq = int(rule.get("minFrequency", 0))
             max_freq = int(rule.get("maxFrequency", 0))
-            if min_freq <= freq_khz <= max_freq:
+            if min_freq <= freq_khz < max_freq:
                 return rule
         return None
 
     def _current_antenna(self, rig: Rig) -> str:
         return self._ws_status.a if rig == Rig.A else self._ws_status.b
+
+    def _select_antenna_internal(self, rig: str, value: int) -> None:
+        rig = rig.upper()
+        target = "-" if value == 0 else str(value)
+        current = self._ws_status.a if rig == "A" else self._ws_status.b
+        if current == target:
+            return
+        command = f"{rig}{'-' if value == 0 else value}"
+        self._set_status_message(f"Sending command: {command}")
+        self._set_busy(True)
+        self._controller.send_text(command)
