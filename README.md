@@ -35,3 +35,22 @@ flowchart LR
 - `QmlBridge.busy` is set to true before sending a command and reset on WebSocket response or error paths.
 - The flag is cleared in `_handle_ws_message`, `_handle_ws_error`, `_handle_ws_disconnected`, and `_handle_ws_send_failed` in [src/ui/qml_bridge.py](src/ui/qml_bridge.py).
 - QML uses `bridge.busy` to disable antenna buttons and avoid overlapping commands (see [src/ui/qml/Main.qml](src/ui/qml/Main.qml)).
+
+## Big Picture
+
+```mermaid
+flowchart LR
+	Antennas[Ant1..Ant6] ==>|Coax| Relay
+	Rigs[RigA..RigB] ==>|Coax| Relay
+	Relay[Remote 2x6 relays] <-->|Relay wiring| Mast[Mast unit]
+	Mast <-->|LoRa| Bridge[LoRa-WS bridge]
+	Bridge <--> |WebSocket| QTUI[Qt control - this project]
+	Bridge <--> |ws://...:81| WebUI[Html page]
+	Bridge --> |http://...:80| WebUI
+```
+- **Ant1..Ant6:** Six possible antennas (connected to relay unit).
+- **RigA..RigB:** Two rigs (connected to relay unit).
+- **Remote 2x6 relays:** Remote 2x6 antenna switch.
+- **Mast unit:** Wisblock RAK11300 controller with galvanically isolated wiring through an I2C IO expander (MCP27016) to the relay unit; firmware is LoRaWan-Arduino.
+- **LoRa-WS bridge:** Heltec V2 module with LoRa and WiFi radios; firmware uses RadioLib for LoRa, WebSocketsServer for the WS endpoint on port 81, and WebServer for the HTTP control page on port 80.
+- **Qt control - this project:** Qt interface for selecting antennas; connects to the bridge over WebSocket on port 81.
