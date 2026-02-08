@@ -30,7 +30,7 @@ ApplicationWindow {
             CheckBox {
                 id: cbAutoA
                 text: qsTr("Auto")
-                enabled: !rbA0.checked && !bridge.busy
+                enabled: !rbA0.checked && !bridge.busy && radioStatus.aFreq > 0
             }
 
             ButtonGroup {
@@ -138,7 +138,7 @@ ApplicationWindow {
             CheckBox {
                 id: cbAutoB
                 text: qsTr("Auto")
-                enabled: !rbB0.checked && !bridge.busy
+                enabled: !rbB0.checked && !bridge.busy && radioStatus.bFreq > 0
             }
 
             ButtonGroup {
