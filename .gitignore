@@ -13,8 +13,6 @@ dist/
 *.egg-info/
 .eggs/
 
-# PyInstaller
-*.spec
 
 # Virtual environments
 .venv/
