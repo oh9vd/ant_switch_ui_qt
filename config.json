@@ -28,29 +28,29 @@
     "antennaRules": [
       {
         "rig": "A",
-        "minFrequency": 10000,
-        "maxFrequency": 800000,
+        "minFrequency": 100,
+        "maxFrequency": 8000,
         "primaryAntenna": 1,
         "secondaryAntenna": 4
       },
       {
         "rig": "A",
-        "minFrequency": 800000,
-        "maxFrequency": 6000000,
+        "minFrequency": 8000,
+        "maxFrequency": 60000,
         "primaryAntenna": 4,
         "secondaryAntenna": 1
       },
       {
         "rig": "B",
-        "minFrequency": 10000,
-        "maxFrequency": 800000,
+        "minFrequency": 100,
+        "maxFrequency": 8000,
         "primaryAntenna": 1,
         "secondaryAntenna": 4
       },
       {
         "rig": "B",
-        "minFrequency": 800000,
-        "maxFrequency": 6000000,
+        "minFrequency": 8000,
+        "maxFrequency": 60000,
         "primaryAntenna": 4,
         "secondaryAntenna": 1
       }

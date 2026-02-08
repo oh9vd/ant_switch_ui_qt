@@ -6,6 +6,7 @@ from PySide6.QtCore import QObject, Property, Signal, Slot
 
 from core.app_controller import AppController
 from core.logging_setup import get_logger
+from core.radio_info import Rig, RadioInfo
 from ui.radio_status import RadioStatus
 from ui.ws_status import WsStatus
 
@@ -13,15 +14,20 @@ from ui.ws_status import WsStatus
 class QmlBridge(QObject):
     statusChanged = Signal()
     busyChanged = Signal()
+    autoAChanged = Signal()
+    autoBChanged = Signal()
 
     def __init__(self, controller: AppController) -> None:
         super().__init__()
         self._controller = controller
         self._status = "Disconnected"
         self._busy = False
+        self._auto_a = False
+        self._auto_b = False
         self._logger = get_logger(self.__class__.__name__)
         self._ws_status = WsStatus()
         self._radio_status = RadioStatus()
+        self._auto_rules = controller.settings.auto_rules
         self._controller.set_ws_message_listener(self._handle_ws_message)
         self._controller.set_ws_error_listener(self._handle_ws_error)
         self._controller.set_ws_disconnect_listener(self._handle_ws_disconnected)
@@ -35,6 +41,12 @@ class QmlBridge(QObject):
             return
         self._set_busy(True)
         self._controller.send_text(message)
+
+    @Slot(str, int)
+    def selectAntenna(self, rig: str, value: int) -> None:
+        sent = self._controller.select_antenna(rig, value)
+        if sent:
+            self._set_busy(True)
 
     def _get_status(self) -> str:
         return self._status
@@ -57,6 +69,28 @@ class QmlBridge(QObject):
         self.busyChanged.emit()
 
     busy = Property(bool, _get_busy, _set_busy, notify=busyChanged)
+
+    def _get_auto_a(self) -> bool:
+        return self._auto_a
+
+    def _set_auto_a(self, value: bool) -> None:
+        if self._auto_a == value:
+            return
+        self._auto_a = value
+        self.autoAChanged.emit()
+
+    autoA = Property(bool, _get_auto_a, _set_auto_a, notify=autoAChanged)
+
+    def _get_auto_b(self) -> bool:
+        return self._auto_b
+
+    def _set_auto_b(self, value: bool) -> None:
+        if self._auto_b == value:
+            return
+        self._auto_b = value
+        self.autoBChanged.emit()
+
+    autoB = Property(bool, _get_auto_b, _set_auto_b, notify=autoBChanged)
 
     def _handle_ws_message(self, message: str) -> None:
         try:
@@ -85,7 +119,54 @@ class QmlBridge(QObject):
 
     def _handle_udp_info(self, info) -> None:
         self._radio_status.update_from_radio_info(info)
+        if isinstance(info, RadioInfo):
+            self._apply_auto_rule(info)
 
     @Property(QObject, constant=True)
     def radioStatus(self) -> RadioStatus:
         return self._radio_status
+
+    def _apply_auto_rule(self, info: RadioInfo) -> None:
+        if self._busy:
+            return
+        if info.radio == Rig.A and not self._auto_a:
+            return
+        if info.radio == Rig.B and not self._auto_b:
+            return
+
+        freq_khz = info.freq
+        if freq_khz > 200_000:
+            freq_khz = int(freq_khz / 1000)
+
+        rule = self._select_rule(info.radio, freq_khz)
+        if rule is None:
+            return
+
+        primary = int(rule.get("primaryAntenna", 0))
+        secondary = int(rule.get("secondaryAntenna", 0))
+        selected = primary
+
+        other = self._current_antenna(Rig.B if info.radio == Rig.A else Rig.A)
+        if other == str(primary):
+            selected = secondary
+
+        current = self._current_antenna(info.radio)
+        if current == str(selected):
+            return
+
+        sent = self._controller.select_antenna(info.radio.value, selected)
+        if sent:
+            self._set_busy(True)
+
+    def _select_rule(self, rig: Rig, freq_khz: int) -> dict | None:
+        for rule in self._auto_rules:
+            if str(rule.get("rig", "")).upper() != rig.value:
+                continue
+            min_freq = int(rule.get("minFrequency", 0))
+            max_freq = int(rule.get("maxFrequency", 0))
+            if min_freq <= freq_khz <= max_freq:
+                return rule
+        return None
+
+    def _current_antenna(self, rig: Rig) -> str:
+        return self._ws_status.a if rig == Rig.A else self._ws_status.b
