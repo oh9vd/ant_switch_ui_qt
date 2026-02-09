@@ -1,4 +1,4 @@
-# Remote Switch (ESP07S)
+# Remote Switch (LoRa and WbSocket)
 
 Remote antenna switch system for two rigs and up to six antennas. This repo contains:
 
