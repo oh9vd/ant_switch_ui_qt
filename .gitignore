@@ -1,41 +1,38 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-
-# C extensions
+*.pyd
+*.pyo
 *.so
-
-# Distribution / packaging
-.Python
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# git commit hashes
-version.txt
-
-# Virtual environments
 .venv/
 venv/
-env/
+.env
+.env.*
 
-# Unit test / coverage
-.coverage
-htmlcov/
-.pytest_cache/
+# PyInstaller
+build/
+dist/
 
 # Logs
 logs/
 *.log
 
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-
-# Qt / QML
+# Qt/QML
 *.qmlc
 *.jsc
-*.rcc
+
+# IDE
+.vscode/
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arduino build outputs
+*.elf
+*.hex
+*.bin
