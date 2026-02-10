@@ -13,7 +13,9 @@ fi
 
 mkdir -p "$DIST_BASE"
 
-if [[ ! -d ".venv" ]]; then
+if [[ ! -d ".venv" || ! -f ".venv/bin/activate" ]]; then
+  # Ensure a Linux venv when building in WSL.
+  rm -rf .venv
   python3 -m venv .venv
 fi
 
@@ -36,9 +38,6 @@ fi
 
 ARCHIVE_BASE="$DIST_BASE/remote_switch-${APP_GIT_COMMIT}-linux"
 if [[ -d "$DIST_APP" ]]; then
-  if command -v 7z >/dev/null 2>&1; then
-    7z a -t7z "$ARCHIVE_BASE.7z" "$DIST_APP" >/dev/null
-  fi
   if command -v tar >/dev/null 2>&1 && command -v gzip >/dev/null 2>&1; then
     tar -czf "$ARCHIVE_BASE.tar.gz" -C "$DIST_BASE" "remote_switch"
   fi
