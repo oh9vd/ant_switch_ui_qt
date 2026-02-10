@@ -35,6 +35,11 @@ bool isRadioBusy = false;  // allows only one request at a time to the mast unit
 
 int currentTxPower = 2;  // Global variable for transmit power
 
+int lastCmdStatus = 0;
+int lastI2cStatus = 0;
+int16_t lastMastRssi = 0;
+int8_t lastMastSnr = 0;
+
 // --- DISPLAY UPDATE ---
 void updateDisplay() {
   u8g2.clearBuffer();
@@ -63,35 +68,42 @@ void updateDisplay() {
   u8g2.sendBuffer();
 }
 
-void handleMastoResponse(const uint8_t* rxData) {
-  // 1. Parse binary data (bytes 0-6)
-  statusA = String((char)rxData[0]);
-  statusB = String((char)rxData[1]);
-  int cmdStatus = rxData[2] - '0';
-  int i2cStatus = rxData[3] - '0';
-  int16_t mastRssi = (int16_t)((rxData[4] << 8) | rxData[5]);
-  int8_t mastSnr = (int8_t)rxData[6];
-
-  // 2. Update OLED display immediately
-  updateDisplay();
-
-  // 3. Build JSON for browsers
+void broadcastAppState(int clientNum = -1) {
   JsonDocument doc;
   doc["a"] = statusA;
   doc["b"] = statusB;
-  doc["cmds"] = cmdStatus;
-  doc["i2cs"] = i2cStatus;
-  doc["rssi"] = mastRssi;
-  doc["snr"] = mastSnr;
-  doc["lrssi"] = radio.getRSSI();
   doc["pwr"] = currentTxPower;
+  doc["lrssi"] = radio.getRSSI();
+  doc["rssi"] = lastMastRssi; 
+  doc["snr"] = lastMastSnr;
+  doc["i2cs"] = lastI2cStatus;
+  doc["cmds"] = lastCmdStatus;
 
   String json;
   serializeJson(doc, json);
-  webSocket.broadcastTXT(json);
+
+  if (clientNum >= 0) {
+    // to single client
+    webSocket.sendTXT(clientNum, json);
+  } else {
+    // to all clients
+    webSocket.broadcastTXT(json);
+  }
 }
 
-bool sendToMasto(String cmd) {
+void handleMastResponse(const uint8_t* rxData) {
+  statusA = String((char)rxData[0]);
+  statusB = String((char)rxData[1]);
+  lastCmdStatus = rxData[2] - '0';
+  lastI2cStatus = rxData[3] - '0';
+  lastMastRssi = (int16_t)((rxData[4] << 8) | rxData[5]);
+  lastMastSnr = (int8_t)rxData[6];
+
+  updateDisplay();
+  broadcastAppState(); 
+}
+
+bool sendToMast(String cmd) {
   isRadioBusy = true;
 
   // Check if the command is just a number (02, 10, 17...)
@@ -104,7 +116,7 @@ bool sendToMasto(String cmd) {
 
         // Save permanently
         preferences.putInt("txPower", currentTxPower);
-        Serial.print("Teho päivitetty ja tallennettu: ");
+        Serial.print("Power send and saved: ");
         Serial.println(currentTxPower);
       }
     }
@@ -119,7 +131,7 @@ bool sendToMasto(String cmd) {
   // 2. Receive
   uint8_t rxData[7];
   if (radio.receive(rxData, 7) == RADIOLIB_ERR_NONE) {
-    handleMastoResponse(rxData);
+    handleMastResponse(rxData);
     isRadioBusy = false;
     return true;
   }
@@ -128,23 +140,30 @@ bool sendToMasto(String cmd) {
   statusA = "NC";
   statusB = "NC";
   updateDisplay();
-  webSocket.broadcastTXT("{\"error\":\"Masto Offline\"}");
+  webSocket.broadcastTXT("{\"error\":\"Mast Offline\"}");
 
   isRadioBusy = false;
   return false;
 }
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload,
-                    size_t length) {
-  if (type == WStype_TEXT && !isRadioBusy) {
-    sendToMasto((char*)payload);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
+  switch (type) {
+    case WStype_CONNECTED:
+      broadcastAppState(num); // Send last known status to new client
+      break;
+
+    case WStype_TEXT:
+      if (!isRadioBusy) {
+        sendToMast((char*)payload);
+      }
+      break;
   }
 }
 
-void initMastoPwr() {
+void initMastPwr() {
   char pwrCmd[3];
   sprintf(pwrCmd, "%02d", currentTxPower);
-  sendToMasto(String(pwrCmd));
+  sendToMast(String(pwrCmd));
 }
 
 void setup() {
@@ -207,7 +226,7 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
 
   delay(100);
-  initMastoPwr();
+  initMastPwr();
 
   updateDisplay();
 }
@@ -219,6 +238,6 @@ void loop() {
   unsigned long now = millis();
   if (now - lastPingTime > PING_INTERVAL) {
     lastPingTime = now;
-    if (!isRadioBusy) sendToMasto("PN");
+    if (!isRadioBusy) sendToMast("PN");
   }
 }
