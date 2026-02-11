@@ -1,6 +1,6 @@
 {
   "app": {
-    "theme": "light"
+    "theme": "system"
   },
   "wsConnection": {
     "url": "http://192.168.68.128/",

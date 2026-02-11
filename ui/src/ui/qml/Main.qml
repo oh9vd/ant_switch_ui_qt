@@ -9,7 +9,7 @@ ApplicationWindow {
     height: 85
     visible: true
     title: appTitle
-    Material.theme: appTheme === "dark" ? Material.Dark : Material.Light
+    Material.theme: appTheme === "dark" ? Material.Dark : (appTheme === "system" ? Material.System : Material.Light)
     Material.accent: Material.Teal
     Material.primary: Material.BlueGrey
     function formatKHz(value) {
