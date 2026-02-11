@@ -18,6 +18,8 @@ version.txt
 
 # Virtual environments
 .venv/
+.venv-windows/
+.venv-linux/
 venv/
 env/
 

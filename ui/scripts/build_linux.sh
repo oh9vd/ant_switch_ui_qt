@@ -13,13 +13,13 @@ fi
 
 mkdir -p "$DIST_BASE"
 
-if [[ ! -d ".venv" || ! -f ".venv/bin/activate" ]]; then
+if [[ ! -d ".venv-linux" || ! -f ".venv-linux/bin/activate" ]]; then
   # Ensure a Linux venv when building in WSL.
-  rm -rf .venv
-  python3 -m venv .venv
+  rm -rf .venv-linux
+  python3 -m venv .venv-linux
 fi
 
-source .venv/bin/activate
+source .venv-linux/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 

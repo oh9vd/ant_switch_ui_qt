@@ -13,11 +13,11 @@ if exist "%DIST_APP%\config.json" (
 
 if not exist "%DIST_BASE%" mkdir "%DIST_BASE%"
 
-if not exist ".venv" (
-  python -m venv .venv
+if not exist ".venv-windows" (
+  python -m venv .venv-windows
 )
 
-call .venv\Scripts\activate.bat
+call .venv-windows\Scripts\activate.bat
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
