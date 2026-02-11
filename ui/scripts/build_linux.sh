@@ -20,7 +20,7 @@ if [[ ! -d ".venv-linux" || ! -f ".venv-linux/bin/activate" ]]; then
 fi
 
 source .venv-linux/bin/activate
-python -m pip install --upgrade pip
+python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 
 export APP_GIT_COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
