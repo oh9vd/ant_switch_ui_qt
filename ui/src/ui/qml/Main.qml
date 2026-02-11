@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.15
 
 ApplicationWindow {
     id: root
-    width: 520
+    width: 515
     height: 85
     visible: true
     title: appTitle
@@ -70,10 +70,10 @@ ApplicationWindow {
     Column {
         anchors.centerIn: parent
         spacing: 1
-        width: parent.width * 0.9
+        width: parent.width * 0.97
 
         Row {
-            spacing: 8
+            spacing: 4
             width: parent.width
 
             CheckBox {
@@ -189,7 +189,7 @@ ApplicationWindow {
         }
 
         Row {
-            spacing: 8
+            spacing: 4
             width: parent.width
 
             CheckBox {
