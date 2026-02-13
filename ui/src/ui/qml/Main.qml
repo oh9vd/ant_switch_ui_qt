@@ -12,6 +12,7 @@ ApplicationWindow {
     Material.theme: appTheme === "dark" ? Material.Dark : (appTheme === "system" ? Material.System : Material.Light)
     Material.accent: Material.Teal
     Material.primary: Material.BlueGrey
+    readonly property bool statusOk: bridge.statusMessage === "OK"
     function formatKHz(value) {
         if (!value || value <= 0) {
             return "";
@@ -80,7 +81,7 @@ ApplicationWindow {
                 id: cbAutoA
                 text: qsTr("Auto")
                 height: rbA0.height
-                enabled: radioStatus.aFreq > 0 && !bridge.busy
+                enabled: radioStatus.aFreq > 0 && !bridge.busy && statusOk
                 checked: bridge.autoA
                 onClicked: bridge.autoA = checked
             }
@@ -97,7 +98,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA0
                     text: antennaNames[0]
-                    enabled: !bridge.busy
+                    enabled: !bridge.busy && statusOk
                     checked: wsStatus.a === "-"
                     onClicked: {
                         if (rbA0.checked) {
@@ -111,7 +112,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA1
                     text: antennaNames[1]
-                    enabled: !bridge.busy && !rbB1.checked && (!cbAutoA.checked || wsStatus.a === "1")
+                    enabled: !bridge.busy && statusOk && !rbB1.checked && (!cbAutoA.checked || wsStatus.a === "1")
                     checked: wsStatus.a === "1"
                     onClicked: {
                         bridge.selectAntenna("A", 1);
@@ -121,7 +122,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA2
                     text: antennaNames[2]
-                    enabled: !bridge.busy && !rbB2.checked && (!cbAutoA.checked || wsStatus.a === "2")
+                    enabled: !bridge.busy && statusOk && !rbB2.checked && (!cbAutoA.checked || wsStatus.a === "2")
                     checked: wsStatus.a === "2"
                     onClicked: {
                         bridge.selectAntenna("A", 2);
@@ -131,7 +132,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA3
                     text: antennaNames[3]
-                    enabled: !bridge.busy && !rbB3.checked && (!cbAutoA.checked || wsStatus.a === "3")
+                    enabled: !bridge.busy && statusOk && !rbB3.checked && (!cbAutoA.checked || wsStatus.a === "3")
                     checked: wsStatus.a === "3"
                     onClicked: {
                         bridge.selectAntenna("A", 3);
@@ -141,7 +142,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA4
                     text: antennaNames[4]
-                    enabled: !bridge.busy && !rbB4.checked && (!cbAutoA.checked || wsStatus.a === "4")
+                    enabled: !bridge.busy && statusOk && !rbB4.checked && (!cbAutoA.checked || wsStatus.a === "4")
                     checked: wsStatus.a === "4"
                     onClicked: {
                         bridge.selectAntenna("A", 4);
@@ -151,7 +152,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA5
                     text: antennaNames[5]
-                    enabled: !bridge.busy && !rbB5.checked && (!cbAutoA.checked || wsStatus.a === "5")
+                    enabled: !bridge.busy && statusOk && !rbB5.checked && (!cbAutoA.checked || wsStatus.a === "5")
                     checked: wsStatus.a === "5"
                     onClicked: {
                         bridge.selectAntenna("A", 5);
@@ -161,7 +162,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbA6
                     text: antennaNames[6]
-                    enabled: !bridge.busy && !rbB6.checked && (!cbAutoA.checked || wsStatus.a === "6")
+                    enabled: !bridge.busy && statusOk && !rbB6.checked && (!cbAutoA.checked || wsStatus.a === "6")
                     checked: wsStatus.a === "6"
                     onClicked: {
                         bridge.selectAntenna("A", 6);
@@ -196,7 +197,7 @@ ApplicationWindow {
                 id: cbAutoB
                 text: qsTr("Auto")
                 height: rbB0.height
-                enabled: radioStatus.bFreq > 0 && !bridge.busy
+                enabled: radioStatus.bFreq > 0 && !bridge.busy && statusOk
                 checked: bridge.autoB
                 onClicked: bridge.autoB = checked
             }
@@ -213,7 +214,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB0
                     text: antennaNames[0]
-                    enabled: !bridge.busy
+                    enabled: !bridge.busy && statusOk
                     checked: wsStatus.b === "-"
                     onClicked: {
                         if (rbB0.checked) {
@@ -227,7 +228,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB1
                     text: antennaNames[1]
-                    enabled: !bridge.busy && !rbA1.checked && (!cbAutoB.checked || wsStatus.b === "1")
+                    enabled: !bridge.busy && statusOk && !rbA1.checked && (!cbAutoB.checked || wsStatus.b === "1")
                     checked: wsStatus.b === "1"
                     onClicked: {
                         bridge.selectAntenna("B", 1);
@@ -237,7 +238,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB2
                     text: antennaNames[2]
-                    enabled: !bridge.busy && !rbA2.checked && (!cbAutoB.checked || wsStatus.b === "2")
+                    enabled: !bridge.busy && statusOk && !rbA2.checked && (!cbAutoB.checked || wsStatus.b === "2")
                     checked: wsStatus.b === "2"
                     onClicked: {
                         bridge.selectAntenna("B", 2);
@@ -247,7 +248,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB3
                     text: antennaNames[3]
-                    enabled: !bridge.busy && !rbA3.checked && (!cbAutoB.checked || wsStatus.b === "3")
+                    enabled: !bridge.busy && statusOk && !rbA3.checked && (!cbAutoB.checked || wsStatus.b === "3")
                     checked: wsStatus.b === "3"
                     onClicked: {
                         bridge.selectAntenna("B", 3);
@@ -257,7 +258,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB4
                     text: antennaNames[4]
-                    enabled: !bridge.busy && !rbA4.checked && (!cbAutoB.checked || wsStatus.b === "4")
+                    enabled: !bridge.busy && statusOk && !rbA4.checked && (!cbAutoB.checked || wsStatus.b === "4")
                     checked: wsStatus.b === "4"
                     onClicked: {
                         bridge.selectAntenna("B", 4);
@@ -267,7 +268,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB5
                     text: antennaNames[5]
-                    enabled: !bridge.busy && !rbA5.checked && (!cbAutoB.checked || wsStatus.b === "5")
+                    enabled: !bridge.busy && statusOk && !rbA5.checked && (!cbAutoB.checked || wsStatus.b === "5")
                     checked: wsStatus.b === "5"
                     onClicked: {
                         bridge.selectAntenna("B", 5);
@@ -277,7 +278,7 @@ ApplicationWindow {
                 ToggleButton {
                     id: rbB6
                     text: antennaNames[6]
-                    enabled: !bridge.busy && !rbA6.checked && (!cbAutoB.checked || wsStatus.b === "6")
+                    enabled: !bridge.busy && statusOk && !rbA6.checked && (!cbAutoB.checked || wsStatus.b === "6")
                     checked: wsStatus.b === "6"
                     onClicked: {
                         bridge.selectAntenna("B", 6);
