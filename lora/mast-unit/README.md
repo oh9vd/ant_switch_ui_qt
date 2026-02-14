@@ -1,6 +1,6 @@
 # Mast unit
 
-Remote unit that is hard wired with 2x6 relay module. This unit has LoRaWAN radio listening commands from Bridge unit and sending responses.
+Remote unit that is hard wired with 2x6 relay module. This unit has LoRa radio listening commands from Bridge unit and sending responses.
 
 ## Arduino IDE build
 

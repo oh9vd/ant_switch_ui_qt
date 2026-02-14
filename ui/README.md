@@ -133,7 +133,7 @@ flowchart LR
 - **Ant1..Ant6:** Six possible antennas (connected to relay unit).
 - **RigA..RigB:** Two rigs (connected to relay unit).
 - **Remote 2x6 relays:** Remote 2x6 antenna switch.
-- **Mast unit:** Wisblock RAK11300 controller with galvanically isolated wiring through an I2C IO expander (MCP27016) to the relay unit; firmware is LoRaWan-Arduino.
+- **Mast unit:** Wisblock RAK11300 controller with galvanically isolated wiring through an I2C IO expander (MCP27016) to the relay unit; firmware uses the LoRaWan-Arduino library for LoRa P2P (not LoRaWAN).
 - **LoRa-WS bridge:** Heltec V2 module with LoRa and WiFi radios; firmware uses RadioLib for LoRa, WebSocketsServer for the WS endpoint on port 81, and WebServer for the HTTP control page on port 80.
 - **Qt control - this project:** Qt interface for selecting antennas; connects to the bridge over WebSocket on port 81.
 

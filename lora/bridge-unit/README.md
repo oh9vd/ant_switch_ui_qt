@@ -1,6 +1,6 @@
 # Bridge unit
 
-This unit has LoRaWAN radio to communicate with Mast unit and WiFi interface to communicate with other Ham Radio software.
+This unit has LoRa radio to communicate with Mast unit and WiFi interface to communicate with other Ham Radio software.
 
 ## Arduino Build
 
